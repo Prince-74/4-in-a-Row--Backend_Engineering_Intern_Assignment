@@ -39,6 +39,7 @@ async function saveCompletedGame({ gameId, player1, player2, winner, createdAt, 
   });
 }
 
+
 async function getLeaderboard(limit = 10) {
   try {
     const players = await prisma.player.findMany({
@@ -47,7 +48,7 @@ async function getLeaderboard(limit = 10) {
     });
     return players;
   } catch (err) {
-    // If tables are missing (e.g. migrations not yet run), return an empty list
+    
     if (err.code === 'P2021') {
       console.warn(
         'Prisma tables not found yet (have you run `npm run prisma:migrate`?). Returning empty leaderboard.',

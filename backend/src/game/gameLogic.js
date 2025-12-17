@@ -42,17 +42,17 @@ function checkWin(board, row, col) {
   if (!symbol) return false;
 
   const directions = [
-    [0, 1],
-    [1, 0],
-    [1, 1],
-    [1, -1],
+    [0, 1], // horizontal
+    [1, 0], // vertical
+    [1, 1], // diag down-right
+    [1, -1], // diag down-left
   ];
 
   for (const [dr, dc] of directions) {
     const total =
       checkDirection(board, row, col, dr, dc, symbol) +
       checkDirection(board, row, col, -dr, -dc, symbol) -
-      1;
+      1; 
     if (total >= 4) return true;
   }
   return false;

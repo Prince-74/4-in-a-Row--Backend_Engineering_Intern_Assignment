@@ -8,9 +8,8 @@ const {
 const { chooseBotMove } = require('./botLogic');
 
 const games = new Map();
-const waitingQueue = new Map(); // username -> { username, joinedAt }
-
-const RECONNECT_TIMEOUT_MS = 30_000;
+const waitingQueue = new Map(); 
+const RECONNECT_TIMEOUT_MS = 30_000; // allow 30s to reconnect
 const BOT_USERNAME = 'BOT';
 
 function createGame(player1, player2, vsBot = false) {
@@ -24,12 +23,12 @@ function createGame(player1, player2, vsBot = false) {
       player1,
       player2,
     },
-    sockets: {},
+    sockets: {}, 
     symbols: {
       [player1]: 'R',
       [player2]: 'Y',
     },
-    turn: player1,
+    turn: player1, 
     vsBot,
     createdAt,
     updatedAt: createdAt,

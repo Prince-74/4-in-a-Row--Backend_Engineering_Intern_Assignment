@@ -10,11 +10,15 @@ const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || 'http://localhost:5173';
 
 async function main() {
   const app = express();
+  
   app.use(cors({ origin: CLIENT_ORIGIN }));
+  
   app.use(express.json());
 
+ 
   app.use('/leaderboard', leaderboardRouter);
 
+  
   const server = http.createServer(app);
   const io = new Server(server, {
     cors: {
@@ -23,8 +27,10 @@ async function main() {
     },
   });
 
+  
   initGameSocket(io);
 
+  
   server.listen(PORT, () => {
     console.log(`Backend listening on port ${PORT}`);
   });

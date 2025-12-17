@@ -10,31 +10,32 @@ const {
   handlePlayerMove,
   handleBotMove,
   endGame,
-} = require('../game/gameManager');
+} = require("../game/gameManager");
 
-const { saveCompletedGame } = require('../db/prisma');
+const { saveCompletedGame } = require("../db/prisma");
 
 function initGameSocket(io) {
-  io.on('connection', (socket) => {
+  io.on("connection", (socket) => {
     let username = null;
     let currentGameId = null;
 
-    socket.on('JOIN_QUEUE', async (data) => {
+    socket.on("JOIN_QUEUE", async (data) => {
       username = data.username;
       if (!username) return;
-
       const existing = findGameByUsername(username);
       if (existing) {
         existing.sockets[username] = socket.id;
         currentGameId = existing.gameId;
-        socket.emit('GAME_START', {
+        socket.emit("GAME_START", {
           gameId: existing.gameId,
           board: existing.board,
           players: existing.players,
           turn: existing.turn,
           symbol: existing.symbols[username],
         });
-        io.to(existing.gameId).emit('PLAYER_RECONNECTED', { username });
+
+        io.to(existing.gameId).emit("PLAYER_RECONNECTED", { username });
+
         clearTimeout(existing.reconnectTimeouts[username]);
         delete existing.reconnectTimeouts[username];
         return;
@@ -51,7 +52,7 @@ function initGameSocket(io) {
           if (s.data && s.data.username === opponentInfo.username) {
             game.sockets[opponentInfo.username] = s.id;
             s.join(game.gameId);
-            s.emit('GAME_START', {
+            s.emit("GAME_START", {
               gameId: game.gameId,
               board: game.board,
               players: game.players,
@@ -63,7 +64,7 @@ function initGameSocket(io) {
 
         socket.join(game.gameId);
         game.sockets[username] = socket.id;
-        socket.emit('GAME_START', {
+        socket.emit("GAME_START", {
           gameId: game.gameId,
           board: game.board,
           players: game.players,
@@ -86,7 +87,7 @@ function initGameSocket(io) {
             games.set(game.gameId, game);
             socket.join(game.gameId);
             game.sockets[username] = socket.id;
-            socket.emit('GAME_START', {
+            socket.emit("GAME_START", {
               gameId: game.gameId,
               board: game.board,
               players: game.players,
@@ -98,26 +99,25 @@ function initGameSocket(io) {
       }
     });
 
-    socket.on('PLAYER_MOVE', async ({ gameId, col }) => {
+    socket.on("PLAYER_MOVE", async ({ gameId, col }) => {
       const game = games.get(gameId);
-      if (!game || !username) return;
+      if (!game || !username) return; // invalid move request
 
       const result = handlePlayerMove(game, username, col);
       if (result.error) {
-        socket.emit('GAME_UPDATE', { error: result.error });
+        socket.emit("GAME_UPDATE", { error: result.error });
         return;
       }
 
-      io.to(gameId).emit('GAME_UPDATE', {
+      io.to(gameId).emit("GAME_UPDATE", {
         board: game.board,
         turn: game.turn,
         lastMove: result.lastMove,
       });
 
-      if (result.status === 'win' || result.status === 'draw') {
-        const durationMs =
-          new Date().getTime() - game.createdAt.getTime();
-        io.to(gameId).emit('GAME_OVER', {
+      if (result.status === "win" || result.status === "draw") {
+        const durationMs = new Date().getTime() - game.createdAt.getTime();
+        io.to(gameId).emit("GAME_OVER", {
           status: result.status,
           winner: result.winner || null,
           board: game.board,
@@ -140,16 +140,15 @@ function initGameSocket(io) {
         const botResult = handleBotMove(game);
         if (botResult.error) return;
 
-        io.to(gameId).emit('GAME_UPDATE', {
+        io.to(gameId).emit("GAME_UPDATE", {
           board: game.board,
           turn: game.turn,
           lastMove: botResult.lastMove,
         });
 
-        if (botResult.status === 'win' || botResult.status === 'draw') {
-          const durationMs =
-            new Date().getTime() - game.createdAt.getTime();
-          io.to(gameId).emit('GAME_OVER', {
+        if (botResult.status === "win" || botResult.status === "draw") {
+          const durationMs = new Date().getTime() - game.createdAt.getTime();
+          io.to(gameId).emit("GAME_OVER", {
             status: botResult.status,
             winner: botResult.winner || null,
             board: game.board,
@@ -169,14 +168,14 @@ function initGameSocket(io) {
       }
     });
 
-    socket.on('disconnect', () => {
+    socket.on("disconnect", () => {
       if (!username) return;
       const game = findGameByUsername(username);
       if (!game) {
         removeFromQueue(username);
         return;
       }
-      io.to(game.gameId).emit('PLAYER_DISCONNECTED', { username });
+      io.to(game.gameId).emit("PLAYER_DISCONNECTED", { username });
       const timeout = setTimeout(async () => {
         const g = games.get(game.gameId);
         if (!g) return;
@@ -184,14 +183,13 @@ function initGameSocket(io) {
           g.players.player1 === username
             ? g.players.player2
             : g.players.player1;
-        io.to(g.gameId).emit('GAME_OVER', {
-          status: 'forfeit',
+        io.to(g.gameId).emit("GAME_OVER", {
+          status: "forfeit",
           winner: opponent,
           board: g.board,
         });
 
-        const durationMs =
-          new Date().getTime() - g.createdAt.getTime();
+        const durationMs = new Date().getTime() - g.createdAt.getTime();
 
         await saveCompletedGame({
           gameId: g.gameId,
@@ -211,5 +209,3 @@ function initGameSocket(io) {
 }
 
 module.exports = { initGameSocket };
-
-
