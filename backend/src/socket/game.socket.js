@@ -121,6 +121,7 @@ function initGameSocket(io) {
           status: result.status,
           winner: result.winner || null,
           board: game.board,
+          winningPositions: result.winningPositions || null,
         });
 
         await saveCompletedGame({
@@ -137,6 +138,9 @@ function initGameSocket(io) {
       }
 
       if (game.vsBot && game.turn === BOT_USERNAME) {
+        // small delay to simulate thinking time for the bot (500ms)
+        await new Promise((res) => setTimeout(res, 750));
+
         const botResult = handleBotMove(game);
         if (botResult.error) return;
 
@@ -152,6 +156,7 @@ function initGameSocket(io) {
             status: botResult.status,
             winner: botResult.winner || null,
             board: game.board,
+            winningPositions: botResult.winningPositions || null,
           });
 
           await saveCompletedGame({

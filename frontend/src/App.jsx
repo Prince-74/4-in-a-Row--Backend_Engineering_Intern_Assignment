@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { socket } from './socket';
 import WelcomeScreen from './components/WelcomeScreen';
 import Board from './components/Board';
@@ -23,11 +23,14 @@ function App() {
   const [turn, setTurn] = useState(null);
   const [symbol, setSymbol] = useState(null);
   const [gameOverInfo, setGameOverInfo] = useState(null);
+  const [winningPositions, setWinningPositions] = useState(null);
   
   // UI state
   const [view, setView] = useState('game'); // 'game' | 'leaderboard'
   const [statusMessage, setStatusMessage] = useState('');
   const [statusType, setStatusType] = useState('info'); // 'info' | 'error' | 'success'
+  const [countdown, setCountdown] = useState(null); // seconds left until bot match
+  const countdownRef = useRef(null);
 
   /**
    * Socket.IO event listeners setup
@@ -38,6 +41,12 @@ function App() {
 
     // Game started: initial setup with board and player info
     socket.on('GAME_START', (payload) => {
+      // stop any pending queue countdown
+      if (countdownRef.current) {
+        clearInterval(countdownRef.current);
+        countdownRef.current = null;
+      }
+      setCountdown(null);
       setGameId(payload.gameId);
       setBoard(payload.board);
       setTurn(payload.turn);
@@ -63,6 +72,7 @@ function App() {
     socket.on('GAME_OVER', (payload) => {
       setBoard(payload.board);
       setGameOverInfo(payload);
+      setWinningPositions(payload.winningPositions || null);
       
       if (payload.status === 'draw') {
         setStatusMessage('Game ended in a draw.');
@@ -101,6 +111,10 @@ function App() {
       socket.off('GAME_OVER');
       socket.off('PLAYER_DISCONNECTED');
       socket.off('PLAYER_RECONNECTED');
+      if (countdownRef.current) {
+        clearInterval(countdownRef.current);
+        countdownRef.current = null;
+      }
     };
   }, [username]);
 
@@ -119,6 +133,8 @@ function App() {
     // Emit join queue event
     socket.emit('JOIN_QUEUE', { username: enteredUsername });
     setStatusMessage('Joining queue, waiting for opponent or bot...');
+    // start 10s countdown until server may match with bot
+    startQueueCountdown(10);
     setStatusType('info');
   };
 
@@ -142,6 +158,49 @@ function App() {
     // Emit move to server
     socket.emit('PLAYER_MOVE', { gameId, col });
   };
+
+  /**
+   * Play again handler - rejoin the queue using the same username
+   * Clears current game state so the server can start a new match.
+   */
+  const handlePlayAgain = () => {
+    if (!username) return;
+    // ensure socket connected
+    if (!socket.connected) socket.connect();
+    // clear local game state while we wait for a new GAME_START
+    setGameId(null);
+    setBoard(null);
+    setTurn(null);
+    setSymbol(null);
+    setGameOverInfo(null);
+    setWinningPositions(null);
+    setStatusMessage(`${username} can play again`);
+    setStatusType('info');
+    // emit join queue
+    socket.emit('JOIN_QUEUE', { username });
+    // restart queue countdown
+    startQueueCountdown(20);
+  };
+
+  function startQueueCountdown(seconds) {
+    // clear existing
+    if (countdownRef.current) {
+      clearInterval(countdownRef.current);
+      countdownRef.current = null;
+    }
+    setCountdown(seconds);
+    countdownRef.current = setInterval(() => {
+      setCountdown((s) => {
+        if (s === null) return null;
+        if (s <= 1) {
+          clearInterval(countdownRef.current);
+          countdownRef.current = null;
+          return null;
+        }
+        return s - 1;
+      });
+    }, 1000);
+  }
 
   // Derived state: is it player's turn?
   const isMyTurn = gameId && turn === username && !gameOverInfo;
@@ -222,12 +281,25 @@ function App() {
                   ⬆️ Your Turn
                 </div>
               )}
+              {/* Play Again button appears when a game has ended */}
+              {gameOverInfo && (
+                <div style={{ marginTop: 12 }}>
+                  <button type="button" className="btn-primary" onClick={handlePlayAgain}>
+                    Play Again
+                  </button>
+                </div>
+              )}
             </div>
 
             {statusMessage && (
-              <div className={`status-message ${statusType}`}>
-                {statusMessage}
-              </div>
+                <div className={`status-message ${statusType}`}>
+                  {statusMessage}
+                  {countdown !== null && (
+                    <span style={{ marginLeft: 8 }}>
+                      (bot in {countdown}s)
+                    </span>
+                  )}
+                </div>
             )}
           </aside>
 
@@ -239,6 +311,7 @@ function App() {
                   board={board}
                   onColumnClick={handleColumnClick}
                   disabled={!isMyTurn}
+                  winningPositions={winningPositions}
                 />
               </div>
             )}

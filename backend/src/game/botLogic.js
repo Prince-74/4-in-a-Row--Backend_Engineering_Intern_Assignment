@@ -25,13 +25,13 @@ function chooseBotMove(board, botSymbol, opponentSymbol) {
   for (const col of validCols) {
     const sim = applyMove(board, col, botSymbol);
     if (!sim) continue;
-    if (checkWin(sim.board, sim.row, sim.col)) return col;
+    if (checkWin(sim.board, sim.row, sim.col).win) return col;
   }
 
   for (const col of validCols) {
     const sim = applyMove(board, col, opponentSymbol);
     if (!sim) continue;
-    if (checkWin(sim.board, sim.row, sim.col)) return col;
+    if (checkWin(sim.board, sim.row, sim.col).win) return col;
   }
 
   let bestCol = validCols[0];

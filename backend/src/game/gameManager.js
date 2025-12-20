@@ -81,8 +81,9 @@ function handlePlayerMove(game, username, col) {
       : game.players.player1;
   game.updatedAt = new Date();
 
-  if (checkWin(game.board, applied.row, applied.col)) {
-    return { status: 'win', winner: username, lastMove: applied };
+  const winResult = checkWin(game.board, applied.row, applied.col);
+  if (winResult.win) {
+    return { status: 'win', winner: username, lastMove: applied, winningPositions: winResult.positions };
   }
   if (isBoardFull(game.board)) {
     return { status: 'draw', lastMove: applied };
@@ -109,8 +110,9 @@ function handleBotMove(game) {
   game.turn = opponent;
   game.updatedAt = new Date();
 
-  if (checkWin(game.board, applied.row, applied.col)) {
-    return { status: 'win', winner: botUsername, lastMove: applied };
+  const winResult = checkWin(game.board, applied.row, applied.col);
+  if (winResult.win) {
+    return { status: 'win', winner: botUsername, lastMove: applied, winningPositions: winResult.positions };
   }
   if (isBoardFull(game.board)) {
     return { status: 'draw', lastMove: applied };

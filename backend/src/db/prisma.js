@@ -43,6 +43,11 @@ async function saveCompletedGame({ gameId, player1, player2, winner, createdAt, 
 async function getLeaderboard(limit = 10) {
   try {
     const players = await prisma.player.findMany({
+      where: {
+        username: {
+          not: 'BOT',
+        },
+      },
       orderBy: { gamesWon: 'desc' },
       take: limit,
     });

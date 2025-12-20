@@ -37,9 +37,30 @@ function checkDirection(board, row, col, dr, dc, symbol) {
   return count;
 }
 
+function getWinningPositions(board, row, col, dr, dc, symbol) {
+  const positions = [];
+  // Go forward
+  let r = row;
+  let c = col;
+  while (r >= 0 && r < ROWS && c >= 0 && c < COLS && board[r][c] === symbol) {
+    positions.push([r, c]);
+    r += dr;
+    c += dc;
+  }
+  // Go backward (excluding the starting position to avoid duplicate)
+  r = row - dr;
+  c = col - dc;
+  while (r >= 0 && r < ROWS && c >= 0 && c < COLS && board[r][c] === symbol) {
+    positions.unshift([r, c]);
+    r -= dr;
+    c -= dc;
+  }
+  return positions;
+}
+
 function checkWin(board, row, col) {
   const symbol = board[row][col];
-  if (!symbol) return false;
+  if (!symbol) return { win: false, positions: null };
 
   const directions = [
     [0, 1], // horizontal
@@ -53,9 +74,12 @@ function checkWin(board, row, col) {
       checkDirection(board, row, col, dr, dc, symbol) +
       checkDirection(board, row, col, -dr, -dc, symbol) -
       1; 
-    if (total >= 4) return true;
+    if (total >= 4) {
+      const positions = getWinningPositions(board, row, col, dr, dc, symbol);
+      return { win: true, positions };
+    }
   }
-  return false;
+  return { win: false, positions: null };
 }
 
 function isBoardFull(board) {
