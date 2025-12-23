@@ -1,216 +1,286 @@
-# 4 in a Row (Connect Four) — Real‑Time Multiplayer (Full‑Stack)
+🎯 4 in a Row (Connect Four) — Backend Engineering Intern Assignment
 
-Real-time multiplayer **Connect Four** using:
-- **Backend**: Node.js + Express + Socket.IO
-- **Database**: PostgreSQL + Prisma (stores only completed games + leaderboard)
-- **Frontend**: React (Vite) + socket.io-client + plain CSS
+A real-time multiplayer Connect Four (4 in a Row) game built as part of a Backend Engineering Intern Assignment.
+The system supports 1v1 gameplay, bot fallback, leaderboard, and decoupled game analytics using Kafka.
 
-> Note: **Kafka is not included/enabled in this repo right now**.
+🔗 Live Demo
 
----
+⚠️ Important (Render Cold Start)
+The backend is hosted on Render (free tier).
+If the app does not respond immediately, wait 20–30 seconds and refresh — the backend may be waking up.
 
-## Project Structure
+Frontend (Vercel): https://YOUR_FRONTEND_URL
 
-```
+Backend (Render): https://YOUR_BACKEND_URL
+
+🧠 Objective (Assignment Requirements)
+
+Real-time multiplayer game server
+
+Player matchmaking with bot fallback after 10 seconds
+
+Strategic bot (blocks wins, tries to win)
+
+WebSocket-based real-time gameplay
+
+Game persistence + leaderboard
+
+Kafka-based decoupled analytics
+
+🛠 Tech Stack
+Backend
+
+Node.js
+
+Express
+
+Socket.IO
+
+PostgreSQL
+
+Prisma ORM
+
+Kafka (analytics only)
+
+Frontend
+
+React (Vite)
+
+socket.io-client
+
+Basic CSS
+
+Infra / Tools
+
+Docker (for local Kafka)
+
+Render (backend hosting)
+
+Vercel (frontend hosting)
+
+🏗 Project Structure
 backend/
-  prisma/
-    schema.prisma
-    migrations/
-  src/
-    index.js
-    socket/
-      game.socket.js
-    game/
-      gameManager.js
-      gameLogic.js
-      botLogic.js
-    routes/
-      leaderboard.js
-    db/
-      prisma.js
+ ├─ prisma/
+ │   ├─ schema.prisma
+ │   └─ migrations/
+ ├─ src/
+ │   ├─ index.js
+ │   ├─ socket/
+ │   │   └─ game.socket.js
+ │   ├─ kafka/
+ │   │   └─ producer.js
+ │   ├─ consumer.js        # Kafka analytics consumer
+ │   ├─ game/
+ │   │   ├─ gameLogic.js
+ │   │   ├─ gameManager.js
+ │   │   └─ botLogic.js
+ │   └─ routes/
+ │       └─ leaderboard.js
+ └─ .env
 frontend/
-  index.html
-  vite.config.js
-  src/
-    App.jsx
-    socket.js
-    components/
-      Board.jsx
-      Leaderboard.jsx
-```
+ ├─ src/
+ │   ├─ App.jsx
+ │   ├─ socket.js
+ │   └─ components/
+ │       ├─ Board.jsx
+ │       └─ Leaderboard.jsx
+ └─ vite.config.js
+docker-compose.kafka.yml
 
----
+🕹 Gameplay Rules
 
-## Requirements
+Board size: 7 × 6
 
-- **Node.js 18+**
-- **PostgreSQL 13+**
-- npm
+Players take turns dropping discs
 
----
+First to connect 4 in a row (horizontal / vertical / diagonal) wins
 
-## Local Setup (Step-by-step)
+Full board without winner → Draw
 
-### 1) Create a PostgreSQL database
+🤖 Matchmaking & Bot
 
-Create a database (example name `four_connect`).
+Player enters a username and joins the queue
 
-### 2) Backend environment variables
+If no opponent joins within 10 seconds, a competitive bot starts
 
-Create `backend/.env`:
+Bot logic:
 
-```bash
-DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@localhost:5432/four_connect?schema=public"
-CLIENT_ORIGIN="http://localhost:5173"
-PORT=4000
-```
+Blocks opponent’s immediate win
 
-### 3) Install backend dependencies
+Tries to create winning paths
 
-```bash
+Never plays random moves
+
+🌐 Real-Time Gameplay (WebSockets)
+
+All moves and turns are synced via Socket.IO
+
+If a player disconnects:
+
+They can rejoin within 30 seconds
+
+After 30 seconds → game forfeited
+
+🏅 Leaderboard
+
+Tracks games won per player
+
+Stored in PostgreSQL
+
+Displayed on frontend
+
+API:
+
+GET /leaderboard
+
+💥 Kafka Analytics (Bonus Requirement)
+
+Kafka is used only for analytics, not for gameplay.
+
+What was implemented
+
+Producer
+backend/src/kafka/producer.js
+Emits analytics events to Kafka topic game-analytics
+
+Resilient (non-fatal if Kafka is down)
+
+Consumer (Analytics Service)
+backend/consumer.js
+
+Consumes analytics events
+
+Computes in-memory metrics
+
+Optionally persists snapshots to Postgres
+
+Socket Wiring
+backend/src/socket/game.socket.js
+Emits lifecycle events only:
+
+GAME_STARTED
+
+GAME_COMPLETED
+
+GAME_FORFEITED
+
+Docker Compose
+docker-compose.kafka.yml
+Local single-node Kafka + Zookeeper
+
+Prisma Metrics Model
+Stores analytics snapshots (optional)
+
+📊 Analytics Metrics Tracked
+
+Total games played
+
+Average game duration
+
+Most frequent winners
+
+Games per day
+
+Metrics are logged by the consumer and optionally stored in DB.
+
+🔑 Environment Variables
+# Kafka
+KAFKA_BROKERS=localhost:9092
+KAFKA_ANALYTICS_TOPIC=game-analytics
+KAFKA_CLIENT_ID=connect-four-backend
+KAFKA_GROUP_ID=connect-four-analytics
+
+# Database
+DATABASE_URL=postgresql://user:password@host:5432/dbname
+
+# Optional
+ANALYTICS_PERSIST_METRICS=true
+KAFKAJS_NO_PARTITIONER_WARNING=1
+
+▶️ How to Run Kafka Locally (For Analytics)
+
+Kafka is not required for gameplay.
+It is used only to demonstrate decoupled analytics as per assignment.
+
+Start Kafka
+docker compose -f docker-compose.kafka.yml up -d
+
+View logs
+docker compose -f docker-compose.kafka.yml logs -f kafka zookeeper
+
+Stop Kafka
+docker compose -f docker-compose.kafka.yml down
+
+▶️ Run Backend & Consumer (Local)
 cd backend
 npm install
-```
+npm run dev          # start backend (producer runs here)
 
-### 4) Run Prisma migrations + generate client
 
-```bash
+In another terminal:
+
 cd backend
-npx prisma generate
-npx prisma migrate dev --name init
-```
+npm run analytics    # start Kafka consumer
 
-### 5) Start backend
+▶️ How to Verify Kafka End-to-End
 
-```bash
-cd backend
-npm start
-```
+Start Kafka via Docker
 
-Backend runs on `http://localhost:4000`.
+Start backend
 
-### 6) Frontend environment variables
+Start analytics consumer
 
-Create `frontend/.env`:
+Play a game to completion
 
-```bash
-VITE_BACKEND_URL="http://localhost:4000"
-```
+Observe:
 
-### 7) Install frontend dependencies + start
+Consumer logs like:
 
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-Frontend runs on `http://localhost:5173`.
-
----
-
-## How to Play
-
-1. Open the frontend in two browser windows (or two devices).
-2. Enter a username and click **Join Queue**.
-3. If another player joins within **10 seconds**, a **1v1** game starts.
-4. If nobody joins within **10 seconds**, you play vs **BOT**.
-5. Click any column to drop a disc.
-
-Rules:
-- Board is **7 columns × 6 rows**
-- 4 in a row wins (horizontal, vertical, diagonal)
-- Draw when board fills and there is no winner
-
----
-
-## Socket.IO Event Flow (Quick Reference)
-
-Client → Server:
-- `JOIN_QUEUE` `{ username }`
-- `PLAYER_MOVE` `{ gameId, col }`
-
-Server → Client:
-- `GAME_START` `{ gameId, board, players, turn, symbol }`
-- `GAME_UPDATE` `{ board, turn, lastMove }` or `{ error }`
-- `GAME_OVER` `{ status, winner, board }`
-- `PLAYER_DISCONNECTED` `{ username }`
-- `PLAYER_RECONNECTED` `{ username }`
-
----
-
-## Leaderboard
-
-Backend endpoint:
-- `GET /leaderboard`
-
-It returns players sorted by `gamesWon` descending.
-
-Example SQL (PostgreSQL):
-
-```sql
-SELECT id, username, "gamesWon"
-FROM "Player"
-ORDER BY "gamesWon" DESC, username ASC;
-```
-
----
-
-## Deployment Notes
-
-### Backend (Render)
-
-1. Create a **Render PostgreSQL** database.
-2. In the backend Render service, set env vars:
-   - `DATABASE_URL` = **Render Internal Database URL** (not localhost)
-   - `CLIENT_ORIGIN` = `https://YOUR_FRONTEND_DOMAIN` (must include `https://`)
-3. Use a build command that applies migrations:
-
-```bash
-cd backend && npm install && npx prisma generate && npx prisma migrate deploy
-```
-
-4. Start command:
-
-```bash
-cd backend && npm start
-```
-
-#### Common deployment pitfall: CORS origin format
-
-If you set:
-- `CLIENT_ORIGIN=4-connect-multiplayer.vercel.app`
-
-Socket.IO will fail with a CORS error because the origin header becomes invalid.
-
-Correct:
-- `CLIENT_ORIGIN=https://4-connect-multiplayer.vercel.app`
-
-### Frontend (Vercel)
-
-Set env var:
-- `VITE_BACKEND_URL=https://YOUR_RENDER_BACKEND_DOMAIN`
-
-Redeploy after changing env vars.
-
----
-
-## Troubleshooting
-
-### Port already in use (EADDRINUSE)
-
-If backend fails on port 4000, either stop the existing process using the port, or set:
-
-```bash
-PORT=4001
-```
-
-Then update frontend `VITE_BACKEND_URL` accordingly.
-
-### Prisma can’t connect (P1001 / localhost in production)
-
-If logs show Prisma trying `localhost:5432` in production:
-- your `DATABASE_URL` is wrong
-- set it to your hosted Postgres URL (Render Internal URL if backend is on Render)
+[analytics] received GAME_COMPLETED
+=== Analytics Snapshot ===
+Total games: 2
+Average duration (s): 21
 
 
+If DATABASE_URL is set → check Prisma Studio for Metrics table
+
+🚀 Deployment Notes
+Backend (Render)
+
+Set DATABASE_URL (Render internal DB URL)
+
+Set CLIENT_ORIGIN=https://YOUR_FRONTEND_URL
+
+Kafka is not required in production for gameplay
+
+Frontend (Vercel)
+
+Set:
+
+VITE_BACKEND_URL=https://YOUR_RENDER_BACKEND_URL
+
+📌 Important Notes (For Evaluators)
+
+Kafka is intentionally decoupled from gameplay
+
+Gameplay continues even if Kafka is unavailable
+
+Kafka + consumer are run locally using Docker for analytics demonstration
+
+This mirrors a real-world async analytics pipeline
+
+🧠 Design Justification (One-liner)
+
+Kafka is used to asynchronously process analytics events without impacting real-time gameplay.
+
+✅ Assignment Status
+
+Real-time multiplayer ✔️
+
+Bot fallback ✔️
+
+Leaderboard ✔️
+
+Kafka analytics ✔️
+
+App hosted ✔️
