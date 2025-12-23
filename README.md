@@ -84,8 +84,126 @@ frontend/
 
 docker-compose.kafka.yml
 ```
+## ▶️ How to Download & Run the Project (Local Setup)
+
+Follow the steps below to set up and run the project locally.
 
 ---
+
+### 1️⃣ Clone the Repository
+
+```bash
+git clone https://github.com/Prince-74/4-in-a-Row--Backend_Engineering_Intern_Assignment.git
+cd 4-in-a-Row--Backend_Engineering_Intern_Assignment
+
+---
+### 2️⃣ Backend Setup
+
+Navigate to the backend folder and install dependencies:
+
+cd backend
+npm install
+3️⃣ Configure Environment Variables (Backend)
+
+Create a .env file inside the backend folder and add:
+
+PORT=4000
+
+DATABASE_URL=postgresql://USER:PASSWORD@HOST:5432/DATABASE
+
+CLIENT_ORIGIN=http://localhost:5173
+
+# Kafka (optional – for analytics)
+KAFKA_BROKERS=localhost:9092
+KAFKA_ANALYTICS_TOPIC=game-analytics
+KAFKA_CLIENT_ID=connect-four-backend
+KAFKA_GROUP_ID=connect-four-analytics
+ANALYTICS_PERSIST_METRICS=true
+KAFKAJS_NO_PARTITIONER_WARNING=1
+
+
+⚠️ Note: Kafka is optional. The game works fully without Kafka.
+
+4️⃣ Setup PostgreSQL & Prisma
+
+Make sure PostgreSQL is running and the database exists, then run:
+
+npx prisma migrate dev
+npx prisma generate
+
+
+(Optional) Open Prisma Studio:
+
+npx prisma studio
+
+5️⃣ Start Backend Server
+npm run dev
+
+
+Backend will be available at:
+
+http://localhost:4000
+
+6️⃣ (Optional) Run Kafka for Analytics
+
+Kafka is used only for analytics, not gameplay.
+
+Start Kafka using Docker:
+
+docker compose -f docker-compose.kafka.yml up -d
+
+
+Start the Kafka consumer (in a new terminal):
+
+cd backend
+npm run analytics
+
+7️⃣ Frontend Setup
+
+Open a new terminal and navigate to the frontend folder:
+
+cd frontend
+npm install
+
+
+Create a .env file inside frontend:
+
+VITE_BACKEND_URL=http://localhost:4000
+
+
+Start the frontend:
+
+npm run dev
+
+
+Frontend will be available at:
+
+http://localhost:5173
+
+8️⃣ How to Play
+
+Open the frontend URL
+
+Enter a username
+
+Wait for another player
+
+If no player joins within 10 seconds, a bot starts automatically
+
+Play the game in real time
+
+View the leaderboard after game completion
+
+9️⃣ Verifying Kafka Analytics (Optional)
+
+After completing a game, check the consumer logs:
+
+[analytics] received GAME_COMPLETED
+Total games: X
+Average duration: Y seconds
+
+
+If DATABASE_URL is set, analytics snapshots will also be stored in PostgreSQL.
 
 ## 🕹 Gameplay Rules
 
@@ -321,11 +439,4 @@ PORT=4001
 ```
 
 Then update frontend `VITE_BACKEND_URL` accordingly.
-
-### Prisma can’t connect (P1001 / localhost in production)
-
-If logs show Prisma trying `localhost:5432` in production:
-- your `DATABASE_URL` is wrong
-- set it to your hosted Postgres URL (Render Internal URL if backend is on Render)
-
 
