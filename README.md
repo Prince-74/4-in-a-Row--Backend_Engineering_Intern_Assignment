@@ -35,41 +35,9 @@ A real-time multiplayer Connect Four (4 in a Row) game built as part of a Backen
 📂 Project Structure
 --------------------
 
----
+Plaintext
 
-## Project Structure
-
-```
-backend/
- ├─ prisma/
- │   ├─ schema.prisma
- │   └─ migrations/
- ├─ src/
- │   ├─ index.js
- │   ├─ socket/
- │   │   └─ game.socket.js
- │   ├─ kafka/
- │   │   └─ producer.js
- │   ├─ consumer.js        # Kafka analytics consumer
- │   ├─ game/
- │   │   ├─ gameLogic.js
- │   │   ├─ gameManager.js
- │   │   └─ botLogic.js
- │   └─ routes/
- │       └─ leaderboard.js
- └─ .env
-
-frontend/
- ├─ src/
- │   ├─ App.jsx
- │   ├─ socket.js
- │   └─ components/
- │       ├─ Board.jsx
- │       └─ Leaderboard.jsx
- └─ vite.config.js
-
-docker-compose.kafka.yml
-```
+Plain textANTLR4BashCC#CSSCoffeeScriptCMakeDartDjangoDockerEJSErlangGitGoGraphQLGroovyHTMLJavaJavaScriptJSONJSXKotlinLaTeXLessLuaMakefileMarkdownMATLABMarkupObjective-CPerlPHPPowerShell.propertiesProtocol BuffersPythonRRubySass (Sass)Sass (Scss)SchemeSQLShellSwiftSVGTSXTypeScriptWebAssemblyYAMLXML`   backend/   ├─ prisma/   │   ├─ schema.prisma   │   └─ migrations/   ├─ src/   │   ├─ index.js   │   ├─ socket/   │   │   └─ game.socket.js   │   ├─ kafka/   │   │   └─ producer.js   │   ├─ consumer.js        # Kafka analytics consumer   │   ├─ game/   │   │   ├─ gameLogic.js   │   │   ├─ gameManager.js   │   │   └─ botLogic.js   │   └─ routes/   │       └─ leaderboard.js   └─ .env  frontend/   ├─ src/   │   ├─ App.jsx   │   ├─ socket.js   │   └─ components/   │       ├─ Board.jsx   │       └─ Leaderboard.jsx   └─ vite.config.js  docker-compose.kafka.yml   `
 
 ▶️ How to Download & Run the Project (Local Setup)
 --------------------------------------------------
