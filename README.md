@@ -1,189 +1,142 @@
 🎯 4 in a Row (Connect Four) — Backend Engineering Intern Assignment
+A real-time multiplayer Connect Four (4 in a Row) game backend & reference frontend.
+Supports 1v1 matchmaking (with competitive bot fallback), real-time gameplay (Socket.IO), persistent leaderboard (Postgres + Prisma) and decoupled analytics via Kafka.
 
-A real-time multiplayer Connect Four (4 in a Row) game built as part of a Backend Engineering Intern Assignment.
-The system supports 1v1 gameplay, bot fallback, leaderboard, and decoupled game analytics using Kafka.
+Live demo
 
-🔗 Live Demo
+Frontend: https://YOUR_FRONTEND_URL
+Backend: https://YOUR_BACKEND_URL
+⚠️ Render cold start: backend on free Render may sleep. If the app doesn't respond immediately, wait ~20–30s and refresh.
 
-⚠️ Important (Render Cold Start)
-The backend is hosted on Render (free tier).
-If the app does not respond immediately, wait 20–30 seconds and refresh — the backend may be waking up.
-
-Frontend (Vercel): https://YOUR_FRONTEND_URL
-
-Backend (Render): https://YOUR_BACKEND_URL
-
-🧠 Objective (Assignment Requirements)
-
-Real-time multiplayer game server
-
-Player matchmaking with bot fallback after 10 seconds
-
-Strategic bot (blocks wins, tries to win)
-
-WebSocket-based real-time gameplay
-
-Game persistence + leaderboard
-
-Kafka-based decoupled analytics
-
-🛠 Tech Stack
-Backend
-
-Node.js
-
-Express
-
-Socket.IO
-
-PostgreSQL
-
-Prisma ORM
-
-Kafka (analytics only)
-
-Frontend
-
-React (Vite)
-
-socket.io-client
-
-Basic CSS
-
-Infra / Tools
-
-Docker (for local Kafka)
-
-Render (backend hosting)
-
-Vercel (frontend hosting)
-
-🏗 Project Structure
+Table of contents
+Core goals
+Features
+Tech stack
+Project structure
+Gameplay rules
+Matchmaking & bot
+Realtime & socket events
+APIs
+Environment variables
+Run locally
+Kafka (analytics) local setup
+Deployment notes
+Troubleshooting
+Contributing
+License
+Core goals
+Build a low-latency multiplayer game server for Connect Four
+Provide reliable matchmaking with a competitive bot fallback
+Persist leaderboard and game data
+Demonstrate a decoupled analytics pipeline (Kafka) that does not affect gameplay
+Features
+Real-time 1v1 gameplay via Socket.IO
+Matchmaking queue with bot fallback after 10s
+Strategic bot (blocks immediate wins, attempts winning lines)
+Game persistence + leaderboard (Postgres + Prisma)
+Kafka-based analytics pipeline (producer + consumer)
+Reconnect within 30s to resume; after 30s → forfeit
+Local Docker Compose for single-node Kafka + Zookeeper (analytics only)
+Tech stack
+Backend: Node.js, Express, Socket.IO, Prisma, PostgreSQL
+Analytics: Kafka (producer in backend, consumer as analytics service)
+Frontend: React (Vite), socket.io-client, basic CSS
+Infra: Docker (local Kafka), Render (backend hosting), Vercel (frontend hosting)
+Project structure
 backend/
- ├─ prisma/
- │   ├─ schema.prisma
- │   └─ migrations/
- ├─ src/
- │   ├─ index.js
- │   ├─ socket/
- │   │   └─ game.socket.js
- │   ├─ kafka/
- │   │   └─ producer.js
- │   ├─ consumer.js        # Kafka analytics consumer
- │   ├─ game/
- │   │   ├─ gameLogic.js
- │   │   ├─ gameManager.js
- │   │   └─ botLogic.js
- │   └─ routes/
- │       └─ leaderboard.js
- └─ .env
+
+Code
+├─ prisma/
+│  ├─ schema.prisma
+│  └─ migrations/
+├─ src/
+│  ├─ index.js
+│  ├─ socket/
+│  │  └─ game.socket.js
+│  ├─ kafka/
+│  │  └─ producer.js
+│  ├─ consumer.js        # Kafka analytics consumer (analytics service)
+│  ├─ game/
+│  │  ├─ gameLogic.js
+│  │  ├─ gameManager.js
+│  │  └─ botLogic.js
+│  └─ routes/
+│      └─ leaderboard.js
+└─ .env
 frontend/
- ├─ src/
- │   ├─ App.jsx
- │   ├─ socket.js
- │   └─ components/
- │       ├─ Board.jsx
- │       └─ Leaderboard.jsx
- └─ vite.config.js
+
+Code
+├─ src/
+│  ├─ App.jsx
+│  ├─ socket.js
+│  └─ components/
+│      ├─ Board.jsx
+│      └─ Leaderboard.jsx
+└─ vite.config.js
 docker-compose.kafka.yml
 
-🕹 Gameplay Rules
+Gameplay rules
+Board: 7 columns × 6 rows
+Players alternate dropping discs into columns
+First to connect 4 in a row (horizontal, vertical, diagonal) wins
+If board fills without a winner → draw
+Matchmaking & bot
+Player enters username and joins matchmaking queue
+If no opponent within 10 seconds → competitive bot assigned
+Bot strategy:
+Blocks opponent's immediate winning moves
+Attempts to create/extend winning paths
+Avoids random play — deterministic, strategic fallback
+Reconnect & forfeiture:
 
-Board size: 7 × 6
+Reconnect within 30 seconds to resume
+After 30 seconds of disconnect → opponent wins by forfeit
+Realtime & socket events
+Socket.IO is used for real-time gameplay and matchmaking.
+Analytics events (GAME_STARTED, GAME_COMPLETED, GAME_FORFEITED) are produced to Kafka by a non-blocking producer.
+Common socket events
 
-Players take turns dropping discs
-
-First to connect 4 in a row (horizontal / vertical / diagonal) wins
-
-Full board without winner → Draw
-
-🤖 Matchmaking & Bot
-
-Player enters a username and joins the queue
-
-If no opponent joins within 10 seconds, a competitive bot starts
-
-Bot logic:
-
-Blocks opponent’s immediate win
-
-Tries to create winning paths
-
-Never plays random moves
-
-🌐 Real-Time Gameplay (WebSockets)
-
-All moves and turns are synced via Socket.IO
-
-If a player disconnects:
-
-They can rejoin within 30 seconds
-
-After 30 seconds → game forfeited
-
-🏅 Leaderboard
-
-Tracks games won per player
-
-Stored in PostgreSQL
-
-Displayed on frontend
-
-API:
-
-GET /leaderboard
-
-💥 Kafka Analytics (Bonus Requirement)
-
-Kafka is used only for analytics, not for gameplay.
-
-What was implemented
-
-Producer
-backend/src/kafka/producer.js
-Emits analytics events to Kafka topic game-analytics
-
-Resilient (non-fatal if Kafka is down)
-
-Consumer (Analytics Service)
-backend/consumer.js
-
-Consumes analytics events
-
-Computes in-memory metrics
-
-Optionally persists snapshots to Postgres
-
-Socket Wiring
-backend/src/socket/game.socket.js
-Emits lifecycle events only:
-
+JOIN_QUEUE { username }
+MATCH_FOUND { gameId, players }
+MAKE_MOVE { gameId, column }
 GAME_STARTED
-
+MOVE_MADE
 GAME_COMPLETED
-
 GAME_FORFEITED
+RECONNECT { gameId, playerId }
+Example client usage:
 
-Docker Compose
-docker-compose.kafka.yml
-Local single-node Kafka + Zookeeper
+js
+import { io } from "socket.io-client";
 
-Prisma Metrics Model
-Stores analytics snapshots (optional)
+const socket = io("https://YOUR_BACKEND_URL", { auth: { username: "Alice" } });
 
-📊 Analytics Metrics Tracked
+socket.on("connect", () => console.log("connected", socket.id));
+socket.on("GAME_STARTED", data => console.log("started", data));
+socket.emit("JOIN_QUEUE", { username: "Alice" });
+socket.emit("MAKE_MOVE", { gameId: "abc123", column: 3 });
+Example GAME_STARTED payload:
 
-Total games played
+JSON
+{
+  "type": "GAME_STARTED",
+  "gameId": "abc123",
+  "players": [
+    { "id": "u1", "name": "Alice" },
+    { "id": "u2", "name": "Bot-1", "isBot": true }
+  ],
+  "timestamp": "2025-12-23T12:00:00Z"
+}
+APIs
+Leaderboard
 
-Average game duration
+GET /leaderboard — returns players and win counts (top players) Example:
+bash
+curl -s https://YOUR_BACKEND_URL/leaderboard | jq
+Environment variables (example)
+Create a .env in backend/ with the following values:
 
-Most frequent winners
-
-Games per day
-
-Metrics are logged by the consumer and optionally stored in DB.
-
-🔑 Environment Variables
+env
 # Kafka
 KAFKA_BROKERS=localhost:9092
 KAFKA_ANALYTICS_TOPIC=game-analytics
@@ -193,94 +146,82 @@ KAFKA_GROUP_ID=connect-four-analytics
 # Database
 DATABASE_URL=postgresql://user:password@host:5432/dbname
 
-# Optional
+# Optional analytics persistence
 ANALYTICS_PERSIST_METRICS=true
 KAFKAJS_NO_PARTITIONER_WARNING=1
 
-▶️ How to Run Kafka Locally (For Analytics)
+# Frontend origin (CORS)
+CLIENT_ORIGIN=https://YOUR_FRONTEND_URL
+Run locally
+Prerequisites:
 
-Kafka is not required for gameplay.
-It is used only to demonstrate decoupled analytics as per assignment.
+Node.js >= 14
+npm
+Postgres (local or in Docker)
+Docker (for Kafka if using analytics)
+Clone
+bash
+git clone https://github.com/Prince-74/4-in-a-Row--Backend_Engineering_Intern_Assignment.git
+cd 4-in-a-Row--Backend_Engineering_Intern_Assignment/backend
+Install
+bash
+npm install
+Prisma (if DB configured)
+bash
+npx prisma migrate dev    # run migrations
+npx prisma generate
+Start backend (dev)
+bash
+npm run dev
+# runs Express + Socket.IO; producer emits analytics events if Kafka available
+Start analytics consumer (optional)
+bash
+npm run analytics
+# runs backend/consumer.js — computes and logs analytics snapshots
+Kafka (analytics) local setup
+Kafka is optional for gameplay (analytics only).
+
+Start local Kafka (single-node) using Docker Compose:
+
+bash
+docker compose -f docker-compose.kafka.yml up -d
+Tail logs:
+
+bash
+docker compose -f docker-compose.kafka.yml logs -f kafka zookeeper
+Stop:
+
+bash
+docker compose -f docker-compose.kafka.yml down
+End-to-end verification:
 
 Start Kafka
-docker compose -f docker-compose.kafka.yml up -d
-
-View logs
-docker compose -f docker-compose.kafka.yml logs -f kafka zookeeper
-
-Stop Kafka
-docker compose -f docker-compose.kafka.yml down
-
-▶️ Run Backend & Consumer (Local)
-cd backend
-npm install
-npm run dev          # start backend (producer runs here)
-
-
-In another terminal:
-
-cd backend
-npm run analytics    # start Kafka consumer
-
-▶️ How to Verify Kafka End-to-End
-
-Start Kafka via Docker
-
 Start backend
-
 Start analytics consumer
-
-Play a game to completion
-
-Observe:
-
-Consumer logs like:
-
+Play a game to completion — consumer should log events like GAME_COMPLETED and snapshots:
+Code
 [analytics] received GAME_COMPLETED
 === Analytics Snapshot ===
 Total games: 2
 Average duration (s): 21
+If DATABASE_URL is set and ANALYTICS_PERSIST_METRICS=true, metrics snapshots can be persisted via Prisma.
 
-
-If DATABASE_URL is set → check Prisma Studio for Metrics table
-
-🚀 Deployment Notes
+Deployment notes
 Backend (Render)
 
-Set DATABASE_URL (Render internal DB URL)
-
-Set CLIENT_ORIGIN=https://YOUR_FRONTEND_URL
-
-Kafka is not required in production for gameplay
-
+Set DATABASE_URL to Render DB URL
+Set CLIENT_ORIGIN to frontend URL
+Kafka is not required in production for gameplay — analytics are optional
 Frontend (Vercel)
 
-Set:
+Set VITE_BACKEND_URL to your Render backend URL
+Cold starts on free Render plans are expected. Consider a periodic ping or an upgrade for more consistent responsiveness.
 
-VITE_BACKEND_URL=https://YOUR_RENDER_BACKEND_URL
-
-📌 Important Notes (For Evaluators)
-
-Kafka is intentionally decoupled from gameplay
-
-Gameplay continues even if Kafka is unavailable
-
-Kafka + consumer are run locally using Docker for analytics demonstration
-
-This mirrors a real-world async analytics pipeline
-
-🧠 Design Justification (One-liner)
-
-Kafka is used to asynchronously process analytics events without impacting real-time gameplay.
-
-✅ Assignment Status
-
-Real-time multiplayer ✔️
-
-Bot fallback ✔️
-
-Leaderboard ✔️
-
-Kafka analytics ✔️
-
-App hosted ✔️
+Troubleshooting
+Backend unresponsive: allow 20–30s for cold start and retry.
+Kafka errors: analytics producer is resilient — gameplay continues if Kafka is down.
+DB errors: run npx prisma migrate dev and check DATABASE_URL.
+Inspect DB: npx prisma studio
+Tests: focus on core game logic (win detection, draw, bot decision) to ensure correctness.
+Contributing
+Fork, create a branch (e.g. feat/your-feature), implement, add tests for core game logic, open a PR with a clear description and screenshots where applicable.
