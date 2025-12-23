@@ -35,9 +35,41 @@ A real-time multiplayer Connect Four (4 in a Row) game built as part of a Backen
 📂 Project Structure
 --------------------
 
-Plaintext
+---
 
-Plain textANTLR4BashCC#CSSCoffeeScriptCMakeDartDjangoDockerEJSErlangGitGoGraphQLGroovyHTMLJavaJavaScriptJSONJSXKotlinLaTeXLessLuaMakefileMarkdownMATLABMarkupObjective-CPerlPHPPowerShell.propertiesProtocol BuffersPythonRRubySass (Sass)Sass (Scss)SchemeSQLShellSwiftSVGTSXTypeScriptWebAssemblyYAMLXML`   backend/   ├─ prisma/   │   ├─ schema.prisma   │   └─ migrations/   ├─ src/   │   ├─ index.js   │   ├─ socket/   │   │   └─ game.socket.js   │   ├─ kafka/   │   │   └─ producer.js   │   ├─ consumer.js        # Kafka analytics consumer   │   ├─ game/   │   │   ├─ gameLogic.js   │   │   ├─ gameManager.js   │   │   └─ botLogic.js   │   └─ routes/   │       └─ leaderboard.js   └─ .env  frontend/   ├─ src/   │   ├─ App.jsx   │   ├─ socket.js   │   └─ components/   │       ├─ Board.jsx   │       └─ Leaderboard.jsx   └─ vite.config.js  docker-compose.kafka.yml   `
+## Project Structure
+
+```
+backend/
+ ├─ prisma/
+ │   ├─ schema.prisma
+ │   └─ migrations/
+ ├─ src/
+ │   ├─ index.js
+ │   ├─ socket/
+ │   │   └─ game.socket.js
+ │   ├─ kafka/
+ │   │   └─ producer.js
+ │   ├─ consumer.js        # Kafka analytics consumer
+ │   ├─ game/
+ │   │   ├─ gameLogic.js
+ │   │   ├─ gameManager.js
+ │   │   └─ botLogic.js
+ │   └─ routes/
+ │       └─ leaderboard.js
+ └─ .env
+
+frontend/
+ ├─ src/
+ │   ├─ App.jsx
+ │   ├─ socket.js
+ │   └─ components/
+ │       ├─ Board.jsx
+ │       └─ Leaderboard.jsx
+ └─ vite.config.js
+
+docker-compose.kafka.yml
+```
 
 ▶️ How to Download & Run the Project (Local Setup)
 --------------------------------------------------
@@ -48,13 +80,13 @@ Follow the steps below to set up and run the project locally.
 
 Bash
 
-Plain textANTLR4BashCC#CSSCoffeeScriptCMakeDartDjangoDockerEJSErlangGitGoGraphQLGroovyHTMLJavaJavaScriptJSONJSXKotlinLaTeXLessLuaMakefileMarkdownMATLABMarkupObjective-CPerlPHPPowerShell.propertiesProtocol BuffersPythonRRubySass (Sass)Sass (Scss)SchemeSQLShellSwiftSVGTSXTypeScriptWebAssemblyYAMLXML`   git clone https://github.com/Prince-74/4-in-a-Row--Backend_Engineering_Intern_Assignment.git  cd 4-in-a-Row--Backend_Engineering_Intern_Assignment   `
+`git clone https://github.com/Prince-74/4-in-a-Row--Backend_Engineering_Intern_Assignment.git  cd 4-in-a-Row--Backend_Engineering_Intern_Assignment   `
 
 ### 2\. Backend Setup
 
 Bash
 
-Plain textANTLR4BashCC#CSSCoffeeScriptCMakeDartDjangoDockerEJSErlangGitGoGraphQLGroovyHTMLJavaJavaScriptJSONJSXKotlinLaTeXLessLuaMakefileMarkdownMATLABMarkupObjective-CPerlPHPPowerShell.propertiesProtocol BuffersPythonRRubySass (Sass)Sass (Scss)SchemeSQLShellSwiftSVGTSXTypeScriptWebAssemblyYAMLXML`   cd backend  npm install   `
+ cd backend  npm install   `
 
 ### 3\. Configure Environment Variables (Backend)
 
@@ -62,33 +94,27 @@ Create a .env file inside the backend folder:
 
 Code snippet
 
-Plain textANTLR4BashCC#CSSCoffeeScriptCMakeDartDjangoDockerEJSErlangGitGoGraphQLGroovyHTMLJavaJavaScriptJSONJSXKotlinLaTeXLessLuaMakefileMarkdownMATLABMarkupObjective-CPerlPHPPowerShell.propertiesProtocol BuffersPythonRRubySass (Sass)Sass (Scss)SchemeSQLShellSwiftSVGTSXTypeScriptWebAssemblyYAMLXML`   PORT=4000  DATABASE_URL=postgresql://USER:PASSWORD@HOST:5432/DATABASE  CLIENT_ORIGIN=http://localhost:5173  # Kafka (optional – for analytics)  KAFKA_BROKERS=localhost:9092  KAFKA_ANALYTICS_TOPIC=game-analytics  KAFKA_CLIENT_ID=connect-four-backend  KAFKA_GROUP_ID=connect-four-analytics  ANALYTICS_PERSIST_METRICS=true  KAFKAJS_NO_PARTITIONER_WARNING=1   `
+`PORT=4000  DATABASE_URL=postgresql://USER:PASSWORD@HOST:5432/DATABASE  CLIENT_ORIGIN=http://localhost:5173  # Kafka (optional – for analytics)  KAFKA_BROKERS=localhost:9092  KAFKA_ANALYTICS_TOPIC=game-analytics  KAFKA_CLIENT_ID=connect-four-backend  KAFKA_GROUP_ID=connect-four-analytics  ANALYTICS_PERSIST_METRICS=true  KAFKAJS_NO_PARTITIONER_WARNING=1   `
 
 > **Note**: Kafka is optional. The game works fully without Kafka.
 
 ### 4\. Setup PostgreSQL & Prisma
 
 Bash
-
-Plain textANTLR4BashCC#CSSCoffeeScriptCMakeDartDjangoDockerEJSErlangGitGoGraphQLGroovyHTMLJavaJavaScriptJSONJSXKotlinLaTeXLessLuaMakefileMarkdownMATLABMarkupObjective-CPerlPHPPowerShell.propertiesProtocol BuffersPythonRRubySass (Sass)Sass (Scss)SchemeSQLShellSwiftSVGTSXTypeScriptWebAssemblyYAMLXML`   npx prisma migrate dev  npx prisma generate  # (Optional) Open Prisma Studio  npx prisma studio   `
+`npx prisma migrate dev  npx prisma generate  # (Optional) Open Prisma Studio  npx prisma studio   `
 
 ### 5\. Start Backend Server
 
 Bash
-
-Plain textANTLR4BashCC#CSSCoffeeScriptCMakeDartDjangoDockerEJSErlangGitGoGraphQLGroovyHTMLJavaJavaScriptJSONJSXKotlinLaTeXLessLuaMakefileMarkdownMATLABMarkupObjective-CPerlPHPPowerShell.propertiesProtocol BuffersPythonRRubySass (Sass)Sass (Scss)SchemeSQLShellSwiftSVGTSXTypeScriptWebAssemblyYAMLXML`   npm start  # Available at: http://localhost:4000   `
+`npm start  # Available at: http://localhost:4000   `
 
 ### 6\. (Optional) Run Kafka for Analytics
 
-Bash
-
-Plain textANTLR4BashCC#CSSCoffeeScriptCMakeDartDjangoDockerEJSErlangGitGoGraphQLGroovyHTMLJavaJavaScriptJSONJSXKotlinLaTeXLessLuaMakefileMarkdownMATLABMarkupObjective-CPerlPHPPowerShell.propertiesProtocol BuffersPythonRRubySass (Sass)Sass (Scss)SchemeSQLShellSwiftSVGTSXTypeScriptWebAssemblyYAMLXML`   # Start Kafka using Docker  docker compose -f docker-compose.kafka.yml up -d  # Start the Kafka consumer (in a new terminal)  cd backend  npm run analytics   `
+`# Start Kafka using Docker  docker compose -f docker-compose.kafka.yml up -d  # Start the Kafka consumer (in a new terminal)  cd backend  npm run analytics   `
 
 ### 7\. Frontend Setup
 
-Bash
-
-Plain textANTLR4BashCC#CSSCoffeeScriptCMakeDartDjangoDockerEJSErlangGitGoGraphQLGroovyHTMLJavaJavaScriptJSONJSXKotlinLaTeXLessLuaMakefileMarkdownMATLABMarkupObjective-CPerlPHPPowerShell.propertiesProtocol BuffersPythonRRubySass (Sass)Sass (Scss)SchemeSQLShellSwiftSVGTSXTypeScriptWebAssemblyYAMLXML`   cd frontend  npm install  # Create .env file  echo "VITE_BACKEND_URL=http://localhost:4000" > .env  # Start frontend  npm run dev  # Available at: http://localhost:5173   `
+`cd frontend  npm install  # Create .env file  echo "VITE_BACKEND_URL=http://localhost:4000" > .env  # Start frontend  npm run dev  # Available at: http://localhost:5173   `
 
 🕹 Gameplay Rules
 -----------------
