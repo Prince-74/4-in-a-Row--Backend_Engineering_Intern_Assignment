@@ -12,6 +12,8 @@ const {
   endGame,
 } = require("../game/gameManager");
 
+const { sendEvent } = require('../kafka/producer');
+
 const { saveCompletedGame } = require("../db/prisma");
 
 function initGameSocket(io) {
@@ -71,6 +73,22 @@ function initGameSocket(io) {
           turn: game.turn,
           symbol: game.symbols[username],
         });
+
+        // analytics: game started
+        try {
+          sendEvent(process.env.KAFKA_ANALYTICS_TOPIC || 'game-analytics', {
+            type: 'GAME_STARTED',
+            payload: {
+              gameId: game.gameId,
+              players: [game.players.player1, game.players.player2],
+              winner: null,
+              durationMs: 0,
+              timestamp: new Date().toISOString(),
+            },
+          });
+        } catch (err) {
+          console.warn('Failed to send GAME_STARTED event to Kafka', err);
+        }
       } else {
         enqueuePlayer(username);
         socket.data.username = username;
@@ -94,6 +112,22 @@ function initGameSocket(io) {
               turn: game.turn,
               symbol: game.symbols[username],
             });
+
+            // analytics: game started (vs bot)
+            try {
+              sendEvent(process.env.KAFKA_ANALYTICS_TOPIC || 'game-analytics', {
+                type: 'GAME_STARTED',
+                payload: {
+                  gameId: game.gameId,
+                  players: [game.players.player1, game.players.player2],
+                  winner: null,
+                  durationMs: 0,
+                  timestamp: new Date().toISOString(),
+                },
+              });
+            } catch (err) {
+              console.warn('Failed to send GAME_STARTED event to Kafka', err);
+            }
           }
         }, 10_000);
       }
@@ -115,6 +149,8 @@ function initGameSocket(io) {
         lastMove: result.lastMove,
       });
 
+      // Do not send gameplay (realtime) events to analytics; only emit start/end/forfeit per requirements
+
       if (result.status === "win" || result.status === "draw") {
         const durationMs = new Date().getTime() - game.createdAt.getTime();
         io.to(gameId).emit("GAME_OVER", {
@@ -123,6 +159,23 @@ function initGameSocket(io) {
           board: game.board,
           winningPositions: result.winningPositions || null,
         });
+
+        // analytics event: game completed
+        try {
+          sendEvent(process.env.KAFKA_ANALYTICS_TOPIC || 'game-analytics', {
+            type: 'GAME_COMPLETED',
+            payload: {
+              gameId,
+              player1: game.players.player1,
+              player2: game.players.player2,
+              winner: result.winner || null,
+              createdAt: game.createdAt,
+              durationMs,
+            },
+          });
+        } catch (err) {
+          console.warn('Failed to send GAME_COMPLETED event to Kafka', err);
+        }
 
         await saveCompletedGame({
           gameId,
@@ -150,6 +203,8 @@ function initGameSocket(io) {
           lastMove: botResult.lastMove,
         });
 
+        // Do not send gameplay updates to analytics
+
         if (botResult.status === "win" || botResult.status === "draw") {
           const durationMs = new Date().getTime() - game.createdAt.getTime();
           io.to(gameId).emit("GAME_OVER", {
@@ -167,6 +222,23 @@ function initGameSocket(io) {
             createdAt: game.createdAt,
             durationMs,
           });
+
+          // analytics event for bot game end
+          try {
+            sendEvent(process.env.KAFKA_ANALYTICS_TOPIC || 'game-analytics', {
+              type: 'GAME_COMPLETED',
+              payload: {
+                gameId,
+                player1: game.players.player1,
+                player2: game.players.player2,
+                winner: botResult.winner || null,
+                createdAt: game.createdAt,
+                durationMs,
+              },
+            });
+          } catch (err) {
+            console.warn('Failed to send bot GAME_COMPLETED event to Kafka', err);
+          }
 
           endGame(gameId);
         }
@@ -193,6 +265,23 @@ function initGameSocket(io) {
           winner: opponent,
           board: g.board,
         });
+
+        // analytics: game forfeited
+        try {
+          sendEvent(process.env.KAFKA_ANALYTICS_TOPIC || 'game-analytics', {
+            type: 'GAME_FORFEITED',
+            payload: {
+              gameId: g.gameId,
+              player1: g.players.player1,
+              player2: g.players.player2,
+              winner: opponent,
+              createdAt: g.createdAt,
+              durationMs,
+            },
+          });
+        } catch (err) {
+          console.warn('Failed to send GAME_FORFEITED event to Kafka', err);
+        }
 
         const durationMs = new Date().getTime() - g.createdAt.getTime();
 

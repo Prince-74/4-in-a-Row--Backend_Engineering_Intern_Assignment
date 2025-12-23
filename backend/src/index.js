@@ -28,6 +28,14 @@ async function main() {
   });
 
   
+  const { connectProducer } = require('./kafka/producer');
+  // connect Kafka producer (if configured)
+  try {
+    await connectProducer();
+  } catch (err) {
+    console.warn('Kafka producer not connected, continuing without Kafka');
+  }
+
   initGameSocket(io);
 
   

@@ -24,6 +24,8 @@ function App() {
   const [symbol, setSymbol] = useState(null);
   const [gameOverInfo, setGameOverInfo] = useState(null);
   const [winningPositions, setWinningPositions] = useState(null);
+  const [opponent, setOpponent] = useState(null); // opponent username or 'BOT'
+  const [vsBot, setVsBot] = useState(false); // track if playing vs bot
   
   // UI state
   const [view, setView] = useState('game'); // 'game' | 'leaderboard'
@@ -52,7 +54,21 @@ function App() {
       setTurn(payload.turn);
       setSymbol(payload.symbol);
       setGameOverInfo(null);
-      setStatusMessage('Game started!');
+      
+      // Determine opponent
+      const opponentName = payload.players.player1 === username 
+        ? payload.players.player2 
+        : payload.players.player1;
+      const isBotMatch = opponentName === 'BOT';
+      setOpponent(opponentName);
+      setVsBot(isBotMatch);
+      
+      // Set match notification
+      if (isBotMatch) {
+        setStatusMessage('🤖 Matched with BOT! Game started!');
+      } else {
+        setStatusMessage(`✅ Matched with ${opponentName}! Game started!`);
+      }
       setStatusType('success');
     });
 
@@ -111,6 +127,8 @@ function App() {
       socket.off('GAME_OVER');
       socket.off('PLAYER_DISCONNECTED');
       socket.off('PLAYER_RECONNECTED');
+      setOpponent(null);
+      setVsBot(false);
       if (countdownRef.current) {
         clearInterval(countdownRef.current);
         countdownRef.current = null;
@@ -174,12 +192,14 @@ function App() {
     setSymbol(null);
     setGameOverInfo(null);
     setWinningPositions(null);
+    setOpponent(null);
+    setVsBot(false);
     setStatusMessage(`${username} can play again`);
     setStatusType('info');
     // emit join queue
     socket.emit('JOIN_QUEUE', { username });
     // restart queue countdown
-    startQueueCountdown(20);
+    startQueueCountdown(10);
   };
 
   function startQueueCountdown(seconds) {
@@ -270,9 +290,32 @@ function App() {
               </div>
 
               <div className="info-row">
+                <span className="info-label">Opponent</span>
+                <span className="info-value">
+                  {opponent ? (
+                    <span>
+                      {vsBot ? '🤖 BOT' : opponent}
+                    </span>
+                  ) : (
+                    <span className="empty">-</span>
+                  )}
+                </span>
+              </div>
+
+              <div className="info-row">
                 <span className="info-label">Current Turn</span>
                 <span className="info-value">
-                  {turn || <span className="empty">-</span>}
+                  {turn ? (
+                    <span>
+                      {turn === username ? (
+                        <span style={{ color: '#4CAF50', fontWeight: 'bold' }}>Your Turn ⬆️</span>
+                      ) : (
+                        <span>{turn === 'BOT' ? '🤖 BOT' : opponent || turn}</span>
+                      )}
+                    </span>
+                  ) : (
+                    <span className="empty">-</span>
+                  )}
                 </span>
               </div>
 
@@ -292,7 +335,7 @@ function App() {
             </div>
 
             {statusMessage && (
-                <div className={`status-message ${statusType}`}>
+                <div className={`status-message ${statusType}`} style={{ fontSize: '15px', padding: '14px 16px' }}>
                   {statusMessage}
                   {countdown !== null && (
                     <span style={{ marginLeft: 8 }}>
@@ -324,6 +367,3 @@ function App() {
 }
 
 export default App;
-
-
-

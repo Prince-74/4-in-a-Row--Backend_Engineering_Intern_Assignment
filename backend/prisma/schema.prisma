@@ -28,4 +28,15 @@ model Game {
   createdAt  DateTime @default(now())
 }
 
+model Metrics {
+  id           Int      @id @default(autoincrement())
+  snapshotAt   DateTime @default(now())
+  totalGames   Int
+  avgDurationMs Int
+  winnerCounts Json
+  gamesPerDay  Json
+  gamesPerHour Json
+  userStats    Json
+}
+
 
