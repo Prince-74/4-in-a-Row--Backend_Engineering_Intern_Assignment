@@ -9,8 +9,7 @@ The system supports 1v1 gameplay, bot fallback, leaderboard, and decoupled game 
 The backend is hosted on Render (free tier).
 If the app does not respond immediately, wait 20–30 seconds and refresh — the backend may be waking up.
 
-- **Frontend (Vercel)**: https://YOUR_FRONTEND_URL
-- **Backend (Render)**: https://YOUR_BACKEND_URL
+- **Frontend (Vercel)**: https://4-connect-multiplayer.vercel.app/
 
 ---
 
@@ -267,7 +266,7 @@ VITE_BACKEND_URL=https://YOUR_RENDER_BACKEND_URL
 
 ---
 
-## 📌 Important Notes (For Evaluators)
+## 📌 Important Notes 
 
 - **Kafka is intentionally decoupled** from gameplay
 - **Gameplay continues even if Kafka is unavailable**
@@ -276,7 +275,7 @@ VITE_BACKEND_URL=https://YOUR_RENDER_BACKEND_URL
 
 ---
 
-## 🧠 Design Justification (One-liner)
+## 🧠 Design Justification 
 
 Kafka is used to asynchronously process analytics events without impacting real-time gameplay.
 
