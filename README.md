@@ -6,7 +6,7 @@ The system supports 1v1 gameplay, bot fallback, leaderboard, and decoupled game 
 ## 🔗 Live Demo
 
 - **Live Link**: https://4-connect-multiplayer.vercel.app/
-- 
+ 
 - ### ⚠️ Important (Render Cold Start)
 The backend is hosted on Render (free tier).
 If the app does not respond immediately, wait 20–30 seconds and refresh — the backend may be waking up.
