@@ -97,12 +97,13 @@ git clone https://github.com/Prince-74/4-in-a-Row--Backend_Engineering_Intern_As
 cd 4-in-a-Row--Backend_Engineering_Intern_Assignment
 
 ---
-### 2️⃣ Backend Setup
+ 2️⃣ Backend Setup
 
 Navigate to the backend folder and install dependencies:
 
 cd backend
 npm install
+
 3️⃣ Configure Environment Variables (Backend)
 
 Create a .env file inside the backend folder and add:
@@ -137,7 +138,8 @@ npx prisma generate
 npx prisma studio
 
 5️⃣ Start Backend Server
-npm run dev
+
+npm start
 
 
 Backend will be available at:
@@ -399,15 +401,6 @@ Kafka is used to asynchronously process analytics events without impacting real-
 
 ---
 
-## ✅ Assignment Status
-
-- ✔️ Real-time multiplayer
-- ✔️ Bot fallback
-- ✔️ Leaderboard
-- ✔️ Kafka analytics
-- ✔️ App hosted``bash
-cd backend && npm start
-```
 
 #### Common deployment pitfall: CORS origin format
 
