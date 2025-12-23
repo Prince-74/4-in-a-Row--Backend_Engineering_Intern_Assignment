@@ -29,6 +29,12 @@ A real-time multiplayer Connect Four (4 in a Row) game built as part of a Backen
     
 
 * * *
+## 🧩 High-Level Architecture
+
+- Frontend communicates with backend via Socket.IO
+- Active game state is maintained in-memory
+- Completed games and leaderboard data are persisted in PostgreSQL
+- Kafka handles asynchronous analytics without blocking gameplay
 
 ## 🛠 Tech Stack
 
