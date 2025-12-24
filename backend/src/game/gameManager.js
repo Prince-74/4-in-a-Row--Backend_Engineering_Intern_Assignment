@@ -16,6 +16,7 @@ function createGame(player1, player2, vsBot = false) {
   const gameId = uuidv4();
   const board = createEmptyBoard();
   const createdAt = new Date();
+  const botStarts = vsBot && Math.random() < 0.7; // bias start toward bot
   const game = {
     gameId,
     board,
@@ -23,12 +24,12 @@ function createGame(player1, player2, vsBot = false) {
       player1,
       player2,
     },
-    sockets: {}, 
+    sockets: {},
     symbols: {
       [player1]: 'R',
       [player2]: 'Y',
     },
-    turn: player1, 
+    turn: vsBot ? (botStarts ? BOT_USERNAME : player1) : player1,
     vsBot,
     createdAt,
     updatedAt: createdAt,

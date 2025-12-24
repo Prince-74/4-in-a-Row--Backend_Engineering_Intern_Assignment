@@ -128,6 +128,30 @@ function initGameSocket(io) {
             } catch (err) {
               console.warn('Failed to send GAME_STARTED event to Kafka', err);
             }
+
+            // Bot plays first move automatically
+            if (game.turn === BOT_USERNAME) {
+              setTimeout(() => {
+                const botResult = handleBotMove(game);
+                if (!botResult.error) {
+                  io.to(game.gameId).emit("GAME_UPDATE", {
+                    board: game.board,
+                    turn: game.turn,
+                    lastMove: botResult.lastMove,
+                  });
+
+                  if (botResult.status === "win" || botResult.status === "draw") {
+                    const durationMs = new Date().getTime() - game.createdAt.getTime();
+                    io.to(game.gameId).emit("GAME_OVER", {
+                      status: botResult.status,
+                      winner: botResult.winner || null,
+                      board: game.board,
+                      winningPositions: botResult.winningPositions || null,
+                    });
+                  }
+                }
+              }, 1000);
+            }
           }
         }, 10_000);
       }
