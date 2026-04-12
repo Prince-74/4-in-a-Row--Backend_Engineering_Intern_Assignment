@@ -3,6 +3,10 @@ const dotenv = require('dotenv');
 
 dotenv.config();
 
+if (!process.env.DATABASE_URL) {
+  console.warn('DATABASE_URL not set; Prisma will not be able to connect to the database.');
+}
+
 const prisma = new PrismaClient();
 
 async function ensurePlayer(username) {
@@ -53,13 +57,17 @@ async function getLeaderboard(limit = 10) {
     });
     return players;
   } catch (err) {
-    
-    if (err.code === 'P2021') {
-      console.warn(
-        'Prisma tables not found yet (have you run `npm run prisma:migrate`?). Returning empty leaderboard.',
-      );
+    // Common initialization / connection failures (e.g., cloud provider: "Tenant or user not found")
+    // Handle gracefully for leaderboard requests so frontend doesn't receive a 500 when DB is misconfigured.
+    const name = err && err.name;
+    const msg = err && (err.message || '');
+
+    if (err?.code === 'P2021' || name === 'PrismaClientInitializationError' || msg.includes('Tenant or user not found')) {
+      console.warn('Prisma not ready or invalid credentials. Returning empty leaderboard.', msg || err);
       return [];
     }
+
+    // rethrow unexpected errors so they can be handled upstream/logged
     throw err;
   }
 }
