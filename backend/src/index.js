@@ -15,6 +15,9 @@ async function main() {
   
   app.use(express.json());
 
+  // basic health endpoint used by keep-alive pings
+  app.get('/health', (req, res) => res.json({ status: 'ok' }));
+
  
   app.use('/leaderboard', leaderboardRouter);
 
@@ -42,6 +45,7 @@ async function main() {
   server.listen(PORT, () => {
     console.log(`Backend listening on port ${PORT}`);
   });
+  // keep-alive pinger removed; use an external uptime monitor to ping /health
 }
 
 main().catch((err) => {
